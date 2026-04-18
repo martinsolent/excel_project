@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Friends Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cds-background: #161616;
+    --cds-background-hover: #1e1e1e;
+    --cds-layer-01: #262626;
+    --cds-layer-02: #393939;
+    --cds-layer-accent-01: #393939;
+    --cds-border-subtle-01: #393939;
+    --cds-border-subtle-02: #525252;
+    --cds-text-primary: #f4f4f4;
+    --cds-text-secondary: #c6c6c6;
+    --cds-text-placeholder: #6f6f6f;
+    --cds-interactive: #0f62fe;
+    --cds-interactive-hover: #0353e9;
+    --cds-support-success: #42be65;
+    --cds-support-warning: #f1c21b;
+    --cds-support-error: #fa4d56;
+    --cds-support-info: #4589ff;
+    --cds-icon-primary: #f4f4f4;
+    --cds-icon-secondary: #c6c6c6;
+    --cds-link-primary: #78a9ff;
+    --spacing-01: 2px;
+    --spacing-02: 4px;
+    --spacing-03: 8px;
+    --spacing-04: 12px;
+    --spacing-05: 16px;
+    --spacing-06: 24px;
+    --spacing-07: 32px;
+    --spacing-08: 40px;
+    --spacing-09: 48px;
+    --spacing-10: 64px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--cds-background);
+    color: var(--cds-text-primary);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* Header */
+  .cds-header {
+    background: var(--cds-layer-01);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    padding: 0 var(--spacing-07);
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .cds-header__logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-03);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    color: var(--cds-text-primary);
+    text-decoration: none;
+    border-right: 1px solid var(--cds-border-subtle-01);
+    padding-right: var(--spacing-05);
+    margin-right: var(--spacing-03);
+  }
+
+  .logo-square {
+    width: 20px;
+    height: 20px;
+    background: var(--cds-interactive);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .cds-header__nav {
+    display: flex;
+    gap: 0;
+    margin-right: auto;
+  }
+
+  .cds-header__nav-item {
+    font-size: 14px;
+    color: var(--cds-text-secondary);
+    padding: 0 var(--spacing-05);
+    height: 48px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.1s, border-color 0.1s;
+  }
+
+  .cds-header__nav-item.active,
+  .cds-header__nav-item:hover {
+    color: var(--cds-text-primary);
+    border-bottom-color: var(--cds-interactive);
+    background: var(--cds-background-hover);
+  }
+
+  .cds-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-03);
+  }
+
+  .upload-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-02);
+    background: var(--cds-interactive);
+    color: #fff;
+    border: none;
+    padding: var(--spacing-02) var(--spacing-05);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    height: 32px;
+    transition: background 0.1s;
+  }
+
+  .upload-btn:hover { background: var(--cds-interactive-hover); }
+
+  .upload-btn svg { flex-shrink: 0; }
+
+  #fileInput { display: none; }
+
+  /* Main layout */
+  .cds-content {
+    padding: var(--spacing-07);
+    max-width: 1584px;
+    margin: 0 auto;
+  }
+
+  /* Page header */
+  .page-header {
+    margin-bottom: var(--spacing-07);
+    padding-bottom: var(--spacing-06);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+  }
+
+  .page-header__eyebrow {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--cds-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    margin-bottom: var(--spacing-02);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .page-header__title {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--cds-text-primary);
+    line-height: 1.2;
+  }
+
+  .page-header__subtitle {
+    font-size: 14px;
+    color: var(--cds-text-secondary);
+    margin-top: var(--spacing-02);
+  }
+
+  /* Upload zone */
+  #uploadZone {
+    border: 1px dashed var(--cds-border-subtle-02);
+    background: var(--cds-layer-01);
+    padding: var(--spacing-10);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: var(--spacing-07);
+  }
+
+  #uploadZone:hover, #uploadZone.drag-over {
+    border-color: var(--cds-interactive);
+    background: rgba(15, 98, 254, 0.06);
+  }
+
+  .upload-zone__icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--spacing-05);
+    opacity: 0.5;
+  }
+
+  .upload-zone__title {
+    font-size: 20px;
+    font-weight: 300;
+    margin-bottom: var(--spacing-03);
+  }
+
+  .upload-zone__desc {
+    font-size: 14px;
+    color: var(--cds-text-secondary);
+    margin-bottom: var(--spacing-05);
+  }
+
+  .upload-zone__hint {
+    font-size: 12px;
+    color: var(--cds-text-placeholder);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Notification */
+  .cds-notification {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-04);
+    background: var(--cds-layer-01);
+    border-left: 3px solid var(--cds-support-success);
+    padding: var(--spacing-04) var(--spacing-05);
+    margin-bottom: var(--spacing-06);
+    font-size: 14px;
+  }
+
+  .cds-notification--info { border-left-color: var(--cds-support-info); }
+  .cds-notification--warning { border-left-color: var(--cds-support-warning); }
+
+  /* Stat cards */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--cds-border-subtle-01);
+    margin-bottom: var(--spacing-07);
+  }
+
+  .stat-card {
+    background: var(--cds-layer-01);
+    padding: var(--spacing-06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--cds-interactive);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .stat-card:hover::after { transform: scaleX(1); }
+
+  .stat-card__label {
+    font-size: 12px;
+    color: var(--cds-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    margin-bottom: var(--spacing-04);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .stat-card__value {
+    font-size: 42px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: var(--spacing-02);
+    color: var(--cds-text-primary);
+  }
+
+  .stat-card__delta {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-01);
+    margin-top: var(--spacing-03);
+  }
+
+  .delta--up { color: var(--cds-support-success); }
+  .delta--down { color: var(--cds-support-error); }
+
+  /* Content grid */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-05);
+    margin-bottom: var(--spacing-05);
+  }
+
+  .content-grid--wide {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  /* Tiles */
+  .cds-tile {
+    background: var(--cds-layer-01);
+    padding: var(--spacing-06);
+  }
+
+  .cds-tile__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-06);
+    padding-bottom: var(--spacing-05);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+  }
+
+  .cds-tile__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cds-text-primary);
+  }
+
+  .cds-tile__subtitle {
+    font-size: 12px;
+    color: var(--cds-text-secondary);
+    margin-top: var(--spacing-01);
+  }
+
+  .cds-tile__badge {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--cds-text-secondary);
+    background: var(--cds-layer-02);
+    padding: 2px 8px;
+  }
+
+  /* Table */
+  .cds-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .cds-data-table thead tr {
+    background: var(--cds-layer-02);
+    border-bottom: 1px solid var(--cds-border-subtle-02);
+  }
+
+  .cds-data-table th {
+    padding: var(--spacing-04) var(--spacing-05);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cds-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    white-space: nowrap;
+  }
+
+  .cds-data-table td {
+    padding: var(--spacing-04) var(--spacing-05);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    color: var(--cds-text-primary);
+    vertical-align: middle;
+  }
+
+  .cds-data-table tbody tr:hover td {
+    background: var(--cds-background-hover);
+  }
+
+  .cds-data-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Tags */
+  .cds-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-01);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 1px 8px;
+    border-radius: 0;
+  }
+
+  .cds-tag--green {
+    background: rgba(66, 190, 101, 0.15);
+    color: var(--cds-support-success);
+  }
+
+  .cds-tag--red {
+    background: rgba(250, 77, 86, 0.15);
+    color: var(--cds-support-error);
+  }
+
+  /* Score bar */
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-03);
+  }
+
+  .score-bar__track {
+    flex: 1;
+    height: 4px;
+    background: var(--cds-layer-02);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-bar__fill {
+    height: 100%;
+    background: var(--cds-interactive);
+    transition: width 0.6s ease;
+  }
+
+  .score-bar__label {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--cds-text-secondary);
+    min-width: 24px;
+    text-align: right;
+  }
+
+  /* Avatar */
+  .avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--cds-interactive);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    margin-right: var(--spacing-03);
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+
+  .name-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Canvas charts */
+  canvas {
+    display: block;
+    width: 100%;
+  }
+
+  /* City list */
+  .city-list { list-style: none; }
+
+  .city-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-04);
+    padding: var(--spacing-03) 0;
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+  }
+
+  .city-item:last-child { border-bottom: none; }
+
+  .city-item__name {
+    font-size: 14px;
+    min-width: 100px;
+  }
+
+  .city-item__bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--cds-layer-02);
+    position: relative;
+  }
+
+  .city-item__bar-fill {
+    height: 100%;
+    background: var(--cds-interactive);
+    transition: width 0.6s ease;
+  }
+
+  .city-item__count {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--cds-text-secondary);
+    min-width: 16px;
+    text-align: right;
+  }
+
+  /* Footer */
+  .cds-footer {
+    border-top: 1px solid var(--cds-border-subtle-01);
+    padding: var(--spacing-06) var(--spacing-07);
+    margin-top: var(--spacing-07);
+    font-size: 12px;
+    color: var(--cds-text-placeholder);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #dashboard { display: none; }
+
+  .full-width { grid-column: 1 / -1; }
+
+  /* Responsive */
+  @media (max-width: 1056px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .content-grid, .content-grid--wide { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 672px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .cds-content { padding: var(--spacing-05); }
+    .cds-header { padding: 0 var(--spacing-05); }
+    .stat-card__value { font-size: 32px; }
+  }
+
+  /* Loading state */
+  .loading-bar {
+    height: 2px;
+    background: var(--cds-interactive);
+    animation: loading 1.2s ease-in-out infinite;
+    transform-origin: left;
+  }
+
+  @keyframes loading {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+    51% { transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="cds-header">
+  <a class="cds-header__logo" href="#">
+    <div class="logo-square">F</div>
+    Friends Dashboard
+  </a>
+  <nav class="cds-header__nav">
+    <div class="cds-header__nav-item active">Overview</div>
+    <div class="cds-header__nav-item">Activity</div>
+    <div class="cds-header__nav-item">Friends</div>
+  </nav>
+  <div class="cds-header__actions">
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+        <path d="M26 24v4H6v-4H4v4a2 2 0 002 2h20a2 2 0 002-2v-4zm0-10l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10 10-10z"/>
+      </svg>
+      Load Excel file
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+  </div>
+</header>
+
+<!-- Main content -->
+<main class="cds-content">
+
+  <div class="page-header">
+    <p class="page-header__eyebrow">Personal</p>
+    <h1 class="page-header__title">Friends Dashboard</h1>
+    <p class="page-header__subtitle">Load your Excel file to view stats, activity, and member details.</p>
+  </div>
+
+  <!-- Upload zone -->
+  <div id="uploadZone">
+    <svg class="upload-zone__icon" viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 22a4 4 0 01-4-4 4 4 0 014-4 5.5 5.5 0 0110.91-1.03A4.5 4.5 0 0126.5 17.5 4.5 4.5 0 0126 26H6v-4z" opacity="0.2"/>
+      <path d="M6 22v4h20a4.5 4.5 0 000-9 5.5 5.5 0 00-9.91-3.03A4 4 0 106 22zM18 10l-1 1-2-2v7h-2v-7l-2 2-1-1 4-4 4 4z"/>
+    </svg>
+    <p class="upload-zone__title">Drop your Excel file here</p>
+    <p class="upload-zone__desc">Or click the Load Excel file button in the header</p>
+    <p class="upload-zone__hint">Accepts .xlsx files — friends_data.xlsx included in this repo</p>
+    <button class="upload-btn" style="margin:16px auto 0;display:inline-flex" onclick="document.getElementById('fileInput').click()">
+      Browse files
+    </button>
+  </div>
+
+  <!-- Dashboard (hidden until file loaded) -->
+  <div id="dashboard">
+
+    <div id="notification" class="cds-notification cds-notification--info" style="display:none">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="var(--cds-support-info)">
+        <path d="M16 2a14 14 0 100 28A14 14 0 0016 2zm0 6a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm4 17h-8v-2h3v-7h-2v-2h5v9h2v2z"/>
+      </svg>
+      <span id="notificationText"></span>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid" id="statGrid"></div>
+
+    <!-- Charts row -->
+    <div class="content-grid--wide content-grid" style="margin-top:var(--spacing-05)">
+      <div class="cds-tile">
+        <div class="cds-tile__header">
+          <div>
+            <p class="cds-tile__title">Monthly Activity</p>
+            <p class="cds-tile__subtitle">Events, messages, and meetups over 12 months</p>
+          </div>
+          <span class="cds-tile__badge">2024</span>
+        </div>
+        <canvas id="activityChart" height="200"></canvas>
+      </div>
+      <div class="cds-tile">
+        <div class="cds-tile__header">
+          <div>
+            <p class="cds-tile__title">Friends by City</p>
+            <p class="cds-tile__subtitle">Geographic distribution</p>
+          </div>
+        </div>
+        <ul class="city-list" id="cityList"></ul>
+      </div>
+    </div>
+
+    <!-- Table + Score chart -->
+    <div class="content-grid" style="margin-top:var(--spacing-05)">
+      <div class="cds-tile full-width">
+        <div class="cds-tile__header">
+          <div>
+            <p class="cds-tile__title">All Friends</p>
+            <p class="cds-tile__subtitle">Full member list with scores and status</p>
+          </div>
+          <span class="cds-tile__badge" id="tableCount"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="cds-data-table" id="friendsTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>City</th>
+                <th>Age</th>
+                <th>Joined</th>
+                <th>Status</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="friendsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score bar chart -->
+    <div class="content-grid" style="margin-top:var(--spacing-05)">
+      <div class="cds-tile full-width">
+        <div class="cds-tile__header">
+          <div>
+            <p class="cds-tile__title">Friend Scores</p>
+            <p class="cds-tile__subtitle">Engagement score per member</p>
+          </div>
+        </div>
+        <canvas id="scoreChart" height="120"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /dashboard -->
+
+</main>
+
+<footer class="cds-footer">
+  <span>Friends Dashboard — IBM Carbon Design System</span>
+  <span id="lastUpdated"></span>
+</footer>
+
+<script>
+// ── Colour palette (Carbon g100) ──────────────────────────
+const C = {
+  blue:    '#0f62fe',
+  teal:    '#009d9a',
+  purple:  '#8a3ffc',
+  cyan:    '#1192e8',
+  green:   '#198038',
+  layer2:  '#393939',
+  text2:   '#c6c6c6',
+  border:  '#393939',
+};
+
+// ── File input ────────────────────────────────────────────
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) readFile(e.target.files[0]);
+});
+
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.classList.add('drag-over');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) readFile(f);
+});
+uploadZone.addEventListener('click', () => fileInput.click());
+
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = new Uint8Array(e.target.result);
+    const wb   = XLSX.read(data, { type: 'array' });
+    processWorkbook(wb, file.name);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Process workbook ──────────────────────────────────────
+function processWorkbook(wb, filename) {
+  const friends  = sheetToJSON(wb, 'Friends');
+  const activity = sheetToJSON(wb, 'Monthly Activity');
+  const cities   = sheetToJSON(wb, 'Cities');
+
+  if (!friends.length) return alert('Could not find a Friends sheet in this file.');
+
+  uploadZone.style.display = 'none';
+  const dash = document.getElementById('dashboard');
+  dash.style.display = 'block';
+  dash.classList.add('fade-in');
+
+  showNotification(`Loaded ${friends.length} friends from ${filename}`);
+  renderStats(friends);
+  renderTable(friends);
+  renderActivityChart(activity);
+  renderCityList(cities);
+  renderScoreChart(friends);
+
+  document.getElementById('lastUpdated').textContent =
+    'Loaded ' + new Date().toLocaleTimeString('en-GB');
+}
+
+function sheetToJSON(wb, name) {
+  if (!wb.Sheets[name]) return [];
+  return XLSX.utils.sheet_to_json(wb.Sheets[name]);
+}
+
+// ── Stat cards ────────────────────────────────────────────
+function renderStats(friends) {
+  const total   = friends.length;
+  const active  = friends.filter(f => f.Status === 'Active').length;
+  const avgScore = Math.round(friends.reduce((s, f) => s + (f.Score || 0), 0) / total);
+  const avgAge  = Math.round(friends.reduce((s, f) => s + (f.Age || 0), 0) / total);
+
+  const stats = [
+    { label: 'Total Friends', value: total,    delta: null },
+    { label: 'Active',        value: active,   delta: `${Math.round(active/total*100)}% active`, up: true },
+    { label: 'Avg Score',     value: avgScore, delta: 'out of 100', up: avgScore > 75 },
+    { label: 'Avg Age',       value: avgAge,   delta: 'years', up: null },
+  ];
+
+  const grid = document.getElementById('statGrid');
+  grid.innerHTML = stats.map(s => `
+    <div class="stat-card">
+      <p class="stat-card__label">${s.label}</p>
+      <p class="stat-card__value">${s.value}</p>
+      ${s.delta ? `<p class="stat-card__delta ${s.up === true ? 'delta--up' : s.up === false ? 'delta--down' : ''}">${s.delta}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── Table ─────────────────────────────────────────────────
+function renderTable(friends) {
+  document.getElementById('tableCount').textContent = friends.length + ' members';
+
+  const body = document.getElementById('friendsTableBody');
+  body.innerHTML = friends.map(f => {
+    const initials = f.Name ? f.Name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() : '?';
+    const tag = f.Status === 'Active'
+      ? `<span class="cds-tag cds-tag--green">Active</span>`
+      : `<span class="cds-tag cds-tag--red">Inactive</span>`;
+    const score = f.Score || 0;
+    const scoreBar = `
+      <div class="score-bar">
+        <div class="score-bar__track" style="width:80px">
+          <div class="score-bar__fill" style="width:${score}%"></div>
+        </div>
+        <span class="score-bar__label">${score}</span>
+      </div>`;
+    return `<tr>
+      <td><div class="name-cell"><div class="avatar">${initials}</div>${f.Name || '—'}</div></td>
+      <td>${f.City || '—'}</td>
+      <td>${f.Age || '—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px">${f.Joined || '—'}</td>
+      <td>${tag}</td>
+      <td>${scoreBar}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Activity line chart ───────────────────────────────────
+function renderActivityChart(rows) {
+  const canvas = document.getElementById('activityChart');
+  const ctx    = canvas.getContext('2d');
+  const W      = canvas.offsetWidth;
+  const H      = 200;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  if (!rows.length) return;
+
+  const labels   = rows.map(r => r.Month);
+  const events   = rows.map(r => r.Events   || 0);
+  const messages = rows.map(r => r.Messages || 0);
+  const meetups  = rows.map(r => r.Meetups  || 0);
+
+  const PAD  = { t: 20, r: 20, b: 40, l: 50 };
+  const cW   = W - PAD.l - PAD.r;
+  const cH   = H - PAD.t - PAD.b;
+
+  const allVals   = [...messages];
+  const maxVal    = Math.max(...allVals) * 1.15;
+  const stepX     = cW / (labels.length - 1);
+
+  function xOf(i) { return PAD.l + i * stepX; }
+  function yOf(v) { return PAD.t + cH - (v / maxVal) * cH; }
+
+  // Grid lines
+  ctx.strokeStyle = '#393939';
+  ctx.lineWidth   = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.t + (cH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(PAD.l, y);
+    ctx.lineTo(PAD.l + cW, y);
+    ctx.stroke();
+    const label = Math.round(maxVal - (maxVal / 4) * i);
+    ctx.fillStyle = '#6f6f6f';
+    ctx.font      = '11px "IBM Plex Mono"';
+    ctx.textAlign = 'right';
+    ctx.fillText(label, PAD.l - 8, y + 4);
+  }
+
+  // X labels
+  ctx.fillStyle = '#c6c6c6';
+  ctx.font      = '11px "IBM Plex Sans"';
+  ctx.textAlign = 'center';
+  labels.forEach((l, i) => ctx.fillText(l, xOf(i), H - 10));
+
+  // Draw line
+  function drawLine(data, color, dotColor) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    data.forEach((v, i) => {
+      if (i === 0) ctx.moveTo(xOf(i), yOf(v));
+      else ctx.lineTo(xOf(i), yOf(v));
+    });
+    ctx.stroke();
+
+    // Area fill
+    ctx.save();
+    ctx.beginPath();
+    data.forEach((v, i) => {
+      if (i === 0) ctx.moveTo(xOf(i), yOf(v));
+      else ctx.lineTo(xOf(i), yOf(v));
+    });
+    ctx.lineTo(xOf(data.length - 1), PAD.t + cH);
+    ctx.lineTo(xOf(0), PAD.t + cH);
+    ctx.closePath();
+    ctx.fillStyle = color + '15';
+    ctx.fill();
+    ctx.restore();
+
+    // Dots
+    data.forEach((v, i) => {
+      ctx.beginPath();
+      ctx.arc(xOf(i), yOf(v), 3, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor;
+      ctx.fill();
+    });
+  }
+
+  drawLine(messages, C.blue,   '#4589ff');
+  drawLine(events.map(v => v * 15), C.teal, '#3ddbd9');
+
+  // Legend
+  const legend = [
+    { label: 'Messages', color: C.blue },
+    { label: 'Events ×15', color: C.teal },
+  ];
+  let lx = PAD.l;
+  legend.forEach(item => {
+    ctx.fillStyle = item.color;
+    ctx.fillRect(lx, 4, 12, 6);
+    ctx.fillStyle = '#c6c6c6';
+    ctx.font      = '11px "IBM Plex Sans"';
+    ctx.textAlign = 'left';
+    ctx.fillText(item.label, lx + 16, 11);
+    lx += 110;
+  });
+}
+
+// ── City list ─────────────────────────────────────────────
+function renderCityList(cities) {
+  const ul  = document.getElementById('cityList');
+  const max = Math.max(...cities.map(c => c.Count || 0));
+  ul.innerHTML = cities.map(c => `
+    <li class="city-item">
+      <span class="city-item__name">${c.City}</span>
+      <div class="city-item__bar-track">
+        <div class="city-item__bar-fill" style="width:${(c.Count/max)*100}%"></div>
+      </div>
+      <span class="city-item__count">${c.Count}</span>
+    </li>
+  `).join('');
+}
+
+// ── Score bar chart ───────────────────────────────────────
+function renderScoreChart(friends) {
+  const canvas = document.getElementById('scoreChart');
+  const ctx    = canvas.getContext('2d');
+  const W      = canvas.offsetWidth;
+  const H      = 120;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const names  = friends.map(f => f.Name ? f.Name.split(' ')[0] : '?');
+  const scores = friends.map(f => f.Score || 0);
+
+  const PAD  = { t: 10, r: 20, b: 30, l: 20 };
+  const cW   = W - PAD.l - PAD.r;
+  const cH   = H - PAD.t - PAD.b;
+  const barW = cW / friends.length;
+  const maxV = 100;
+
+  scores.forEach((s, i) => {
+    const x  = PAD.l + i * barW + barW * 0.15;
+    const bW = barW * 0.7;
+    const bH = (s / maxV) * cH;
+    const y  = PAD.t + cH - bH;
+
+    // Bar background
+    ctx.fillStyle = '#393939';
+    ctx.fillRect(x, PAD.t, bW, cH);
+
+    // Bar fill — colour by score
+    ctx.fillStyle = s >= 85 ? C.blue : s >= 70 ? C.teal : '#6f6f6f';
+    ctx.fillRect(x, y, bW, bH);
+
+    // Value label
+    ctx.fillStyle = '#f4f4f4';
+    ctx.font      = '10px "IBM Plex Mono"';
+    ctx.textAlign = 'center';
+    ctx.fillText(s, x + bW / 2, y - 3);
+
+    // Name label
+    ctx.fillStyle = '#c6c6c6';
+    ctx.font      = '10px "IBM Plex Sans"';
+    ctx.textAlign = 'center';
+    const name = names[i].length > 6 ? names[i].slice(0,5) + '…' : names[i];
+    ctx.fillText(name, x + bW / 2, H - 8);
+  });
+}
+
+// ── Notification ──────────────────────────────────────────
+function showNotification(msg) {
+  const el = document.getElementById('notification');
+  document.getElementById('notificationText').textContent = msg;
+  el.style.display = 'flex';
+}
+</script>
+</body>
+</html>
